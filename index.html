@@ -36,7 +36,6 @@
                                 <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 24h Auto-Removal
                             </span>
                         </div>
-                        <p class="text-xs text-slate-500">Pure Client-Side • No Backend Required • Auto-Clears 24 Hours After Upload</p>
                     </div>
                 </div>
 
@@ -284,7 +283,23 @@
             try {
                 const saved = localStorage.getItem('daily_meals_24h_tracker');
                 if (saved) {
-                    mealsData = JSON.parse(saved);
+                    const savedData = JSON.parse(saved);
+                    mealsData = MEALS.reduce((state, meal) => {
+                        const mealData = savedData && savedData[meal];
+                        const hasValidImage = mealData &&
+                            typeof mealData.image === 'string' &&
+                            mealData.image.startsWith('data:image/');
+                        const hasValidTimestamp = mealData &&
+                            Number.isFinite(mealData.uploadedAt);
+
+                        state[meal] = hasValidImage && hasValidTimestamp
+                            ? {
+                                image: mealData.image,
+                                uploadedAt: mealData.uploadedAt
+                            }
+                            : null;
+                        return state;
+                    }, {});
                 }
             } catch (e) {
                 console.warn('LocalStorage unavailable:', e);
@@ -306,9 +321,8 @@
 
             MEALS.forEach(meal => {
                 if (mealsData[meal]) {
-                    const elapsed = now - mealsData[meal].uploadedAt;
-                    if (elapsed >= TWENTY_FOUR_HOURS_MS) {
-                        // 24 Hours have passed -> remove image
+                    const expiresAt = mealsData[meal].uploadedAt + TWENTY_FOUR_HOURS_MS;
+                    if (now >= expiresAt) {
                         mealsData[meal] = null;
                         stateChanged = true;
                     }

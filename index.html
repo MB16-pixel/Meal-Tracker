@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Meal Journal (No Firebase)</title>
+    <title>Daily Meal Tracker (24h Auto-Expiry)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,23 +31,19 @@
                     </div>
                     <div>
                         <div class="flex items-center space-x-2">
-                            <h1 class="text-xl font-bold text-slate-900 leading-tight">Daily Meal Journal</h1>
-                            <span id="sync-status" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                                <span class="w-2 h-2 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> Connecting...
+                            <h1 class="text-xl font-bold text-slate-900 leading-tight">Daily Meal Tracker</h1>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 24h Auto-Removal
                             </span>
                         </div>
-                        <p class="text-xs text-slate-500">Live WebSocket Sync (No Cloud / No Firebase)</p>
+                        <p class="text-xs text-slate-500">Pure Client-Side • No Backend Required • Auto-Clears 24 Hours After Upload</p>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <div class="bg-slate-100 rounded-xl px-3 py-1.5 flex items-center space-x-2 text-xs font-semibold text-slate-700">
-                        <i class="fa-regular fa-calendar text-brand-600"></i>
-                        <span id="current-date-display">Today</span>
-                    </div>
-                    <div class="bg-amber-50 border border-amber-200/60 rounded-xl px-3 py-1.5 flex items-center space-x-2 text-xs font-semibold text-amber-800">
-                        <i class="fa-regular fa-clock text-amber-600"></i>
-                        <span>Resets in: <span id="countdown-display" class="font-mono">--:--:--</span></span>
+                <div class="flex items-center space-x-3">
+                    <div class="bg-slate-100 rounded-xl px-3.5 py-1.5 flex items-center space-x-2 text-xs font-semibold text-slate-700">
+                        <i class="fa-regular fa-clock text-brand-600"></i>
+                        <span id="current-time-display">--:--:--</span>
                     </div>
                 </div>
             </div>
@@ -58,39 +54,58 @@
         
         <div class="mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center space-x-3 text-sm text-slate-600">
-                <i class="fa-solid fa-satellite-dish text-brand-600 text-base"></i>
-                <span>Open this exact address on any phone or laptop on your network to see image uploads instantly in real-time.</span>
+                <i class="fa-solid fa-circle-info text-brand-600 text-base"></i>
+                <span>Upload a photo into any slot. Each image auto-deletes <b>exactly 24 hours</b> after upload.</span>
             </div>
-            <button onclick="confirmClearAll()" class="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors">
-                <i class="fa-regular fa-trash-can mr-1.5"></i> Clear All Slots
-            </button>
+            <div class="flex items-center space-x-2 w-full md:w-auto">
+                <button onclick="simulatePass24Hours()" class="flex-1 md:flex-none inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors">
+                    <i class="fa-solid fa-forward-fast mr-1.5"></i> Fast Forward 24h (Test)
+                </button>
+                <button onclick="confirmClearAll()" class="flex-1 md:flex-none inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-xl text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors">
+                    <i class="fa-regular fa-trash-can mr-1.5"></i> Clear All Slots
+                </button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-            <!-- Breakfast -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <!-- Breakfast Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md">
                 <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <div class="flex items-center space-x-2">
                         <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-sm"><i class="fa-solid fa-mug-saucer"></i></span>
                         <h2 class="font-bold text-slate-800">Breakfast</h2>
                     </div>
-                    <span id="badge-breakfast" class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
+                    <span id="timer-breakfast" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
                 </div>
                 <div class="p-5 flex-1 flex flex-col justify-center">
-                    <div onclick="triggerFileInput('breakfast')" class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[220px]">
+                    <div id="dropzone-breakfast" onclick="triggerFileInput('breakfast')" 
+                         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'breakfast')"
+                         class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[230px]">
+                        
                         <input type="file" id="input-breakfast" accept="image/*" class="hidden" onchange="handleFileSelect(event, 'breakfast')">
+                        
                         <div id="placeholder-breakfast" class="flex flex-col items-center space-y-3">
                             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 group-hover:bg-brand-100 group-hover:text-brand-600 flex items-center justify-center transition-colors">
                                 <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                             </div>
-                            <p class="text-xs font-semibold text-slate-700">Upload Breakfast</p>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-700">Click to upload</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">or drag & drop photo</p>
+                            </div>
                         </div>
-                        <div id="preview-container-breakfast" class="hidden relative w-full h-full min-h-[200px] rounded-lg overflow-hidden group/img">
-                            <img id="img-breakfast" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Breakfast preview">
-                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-3">
+
+                        <div id="preview-container-breakfast" class="hidden relative w-full h-full min-h-[210px] rounded-lg overflow-hidden group/img">
+                            <img id="img-breakfast" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Breakfast image">
+                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                                <button type="button" onclick="event.stopPropagation(); openModal('breakfast')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="View Fullscreen">
+                                    <i class="fa-solid fa-expand text-xs"></i>
+                                </button>
+                                <button type="button" onclick="event.stopPropagation(); triggerFileInput('breakfast')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="Replace Image">
+                                    <i class="fa-solid fa-rotate text-xs"></i>
+                                </button>
                                 <button type="button" onclick="event.stopPropagation(); deleteMealImage('breakfast')" class="p-2.5 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white backdrop-blur-sm transition-all" title="Delete Image">
-                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </div>
                         </div>
@@ -98,29 +113,43 @@
                 </div>
             </div>
 
-            <!-- Lunch -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <!-- Lunch Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md">
                 <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <div class="flex items-center space-x-2">
                         <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-sm"><i class="fa-solid fa-bowl-food"></i></span>
                         <h2 class="font-bold text-slate-800">Lunch</h2>
                     </div>
-                    <span id="badge-lunch" class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
+                    <span id="timer-lunch" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
                 </div>
                 <div class="p-5 flex-1 flex flex-col justify-center">
-                    <div onclick="triggerFileInput('lunch')" class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[220px]">
+                    <div id="dropzone-lunch" onclick="triggerFileInput('lunch')" 
+                         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'lunch')"
+                         class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[230px]">
+                        
                         <input type="file" id="input-lunch" accept="image/*" class="hidden" onchange="handleFileSelect(event, 'lunch')">
+                        
                         <div id="placeholder-lunch" class="flex flex-col items-center space-y-3">
                             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 group-hover:bg-brand-100 group-hover:text-brand-600 flex items-center justify-center transition-colors">
                                 <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                             </div>
-                            <p class="text-xs font-semibold text-slate-700">Upload Lunch</p>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-700">Click to upload</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">or drag & drop photo</p>
+                            </div>
                         </div>
-                        <div id="preview-container-lunch" class="hidden relative w-full h-full min-h-[200px] rounded-lg overflow-hidden group/img">
-                            <img id="img-lunch" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Lunch preview">
-                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-3">
+
+                        <div id="preview-container-lunch" class="hidden relative w-full h-full min-h-[210px] rounded-lg overflow-hidden group/img">
+                            <img id="img-lunch" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Lunch image">
+                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                                <button type="button" onclick="event.stopPropagation(); openModal('lunch')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="View Fullscreen">
+                                    <i class="fa-solid fa-expand text-xs"></i>
+                                </button>
+                                <button type="button" onclick="event.stopPropagation(); triggerFileInput('lunch')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="Replace Image">
+                                    <i class="fa-solid fa-rotate text-xs"></i>
+                                </button>
                                 <button type="button" onclick="event.stopPropagation(); deleteMealImage('lunch')" class="p-2.5 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white backdrop-blur-sm transition-all" title="Delete Image">
-                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </div>
                         </div>
@@ -128,29 +157,43 @@
                 </div>
             </div>
 
-            <!-- Snacks -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <!-- Snacks Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md">
                 <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <div class="flex items-center space-x-2">
                         <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm"><i class="fa-solid fa-cookie-bite"></i></span>
                         <h2 class="font-bold text-slate-800">Snacks</h2>
                     </div>
-                    <span id="badge-snacks" class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
+                    <span id="timer-snacks" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
                 </div>
                 <div class="p-5 flex-1 flex flex-col justify-center">
-                    <div onclick="triggerFileInput('snacks')" class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[220px]">
+                    <div id="dropzone-snacks" onclick="triggerFileInput('snacks')" 
+                         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'snacks')"
+                         class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[230px]">
+                        
                         <input type="file" id="input-snacks" accept="image/*" class="hidden" onchange="handleFileSelect(event, 'snacks')">
+                        
                         <div id="placeholder-snacks" class="flex flex-col items-center space-y-3">
                             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 group-hover:bg-brand-100 group-hover:text-brand-600 flex items-center justify-center transition-colors">
                                 <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                             </div>
-                            <p class="text-xs font-semibold text-slate-700">Upload Snacks</p>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-700">Click to upload</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">or drag & drop photo</p>
+                            </div>
                         </div>
-                        <div id="preview-container-snacks" class="hidden relative w-full h-full min-h-[200px] rounded-lg overflow-hidden group/img">
-                            <img id="img-snacks" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Snacks preview">
-                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-3">
+
+                        <div id="preview-container-snacks" class="hidden relative w-full h-full min-h-[210px] rounded-lg overflow-hidden group/img">
+                            <img id="img-snacks" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Snacks image">
+                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                                <button type="button" onclick="event.stopPropagation(); openModal('snacks')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="View Fullscreen">
+                                    <i class="fa-solid fa-expand text-xs"></i>
+                                </button>
+                                <button type="button" onclick="event.stopPropagation(); triggerFileInput('snacks')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="Replace Image">
+                                    <i class="fa-solid fa-rotate text-xs"></i>
+                                </button>
                                 <button type="button" onclick="event.stopPropagation(); deleteMealImage('snacks')" class="p-2.5 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white backdrop-blur-sm transition-all" title="Delete Image">
-                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </div>
                         </div>
@@ -158,29 +201,43 @@
                 </div>
             </div>
 
-            <!-- Dinner -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <!-- Dinner Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md">
                 <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <div class="flex items-center space-x-2">
                         <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm"><i class="fa-solid fa-utensils"></i></span>
                         <h2 class="font-bold text-slate-800">Dinner</h2>
                     </div>
-                    <span id="badge-dinner" class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
+                    <span id="timer-dinner" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Empty</span>
                 </div>
                 <div class="p-5 flex-1 flex flex-col justify-center">
-                    <div onclick="triggerFileInput('dinner')" class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[220px]">
+                    <div id="dropzone-dinner" onclick="triggerFileInput('dinner')" 
+                         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'dinner')"
+                         class="relative border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-all group flex flex-col items-center justify-center min-h-[230px]">
+                        
                         <input type="file" id="input-dinner" accept="image/*" class="hidden" onchange="handleFileSelect(event, 'dinner')">
+                        
                         <div id="placeholder-dinner" class="flex flex-col items-center space-y-3">
                             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 group-hover:bg-brand-100 group-hover:text-brand-600 flex items-center justify-center transition-colors">
                                 <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                             </div>
-                            <p class="text-xs font-semibold text-slate-700">Upload Dinner</p>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-700">Click to upload</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">or drag & drop photo</p>
+                            </div>
                         </div>
-                        <div id="preview-container-dinner" class="hidden relative w-full h-full min-h-[200px] rounded-lg overflow-hidden group/img">
-                            <img id="img-dinner" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Dinner preview">
-                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-3">
+
+                        <div id="preview-container-dinner" class="hidden relative w-full h-full min-h-[210px] rounded-lg overflow-hidden group/img">
+                            <img id="img-dinner" class="w-full h-48 object-cover rounded-lg shadow-inner" alt="Dinner image">
+                            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                                <button type="button" onclick="event.stopPropagation(); openModal('dinner')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="View Fullscreen">
+                                    <i class="fa-solid fa-expand text-xs"></i>
+                                </button>
+                                <button type="button" onclick="event.stopPropagation(); triggerFileInput('dinner')" class="p-2.5 rounded-xl bg-white/20 hover:bg-white/40 text-white backdrop-blur-sm transition-all" title="Replace Image">
+                                    <i class="fa-solid fa-rotate text-xs"></i>
+                                </button>
                                 <button type="button" onclick="event.stopPropagation(); deleteMealImage('dinner')" class="p-2.5 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white backdrop-blur-sm transition-all" title="Delete Image">
-                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </div>
                         </div>
@@ -191,150 +248,116 @@
         </div>
     </main>
 
+    <div id="image-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4" onclick="closeModal()">
+        <div class="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 id="modal-title" class="font-bold text-slate-800 capitalize">Meal Photo</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-2 bg-slate-900 flex justify-center">
+                <img id="modal-img" class="max-h-[75vh] object-contain rounded-lg" alt="Full view">
+            </div>
+        </div>
+    </div>
+
     <script>
         const MEALS = ['breakfast', 'lunch', 'snacks', 'dinner'];
-        let socket = null;
-        const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('meal_sync_channel') : null;
+        const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-        let localMealsState = {
-            date: getTodayString(),
+        /*
+            Local State Structure stored in browser's localStorage:
+            {
+                breakfast: { image: "data:image/jpeg;base64,...", uploadedAt: 1710000000000 },
+                lunch: null, ...
+            }
+        */
+        let mealsData = {
             breakfast: null,
             lunch: null,
             snacks: null,
             dinner: null
         };
 
-        function getTodayString() {
-            return new Date().toISOString().split('T')[0];
-        }
-
-        function loadLocalState() {
+        function loadFromLocalStorage() {
             try {
-                const saved = localStorage.getItem('daily_meals_data');
+                const saved = localStorage.getItem('daily_meals_24h_tracker');
                 if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.date === getTodayString()) {
-                        localMealsState = parsed;
-                    } else {
-                        // Date rollover - clear old state
-                        clearAllLocalState();
-                    }
+                    mealsData = JSON.parse(saved);
                 }
             } catch (e) {
                 console.warn('LocalStorage unavailable:', e);
             }
-            renderMeals(localMealsState);
+            checkAndCleanExpiredMeals();
         }
 
-        function saveLocalState() {
-            localMealsState.date = getTodayString();
+        function saveToLocalStorage() {
             try {
-                localStorage.setItem('daily_meals_data', JSON.stringify(localMealsState));
+                localStorage.setItem('daily_meals_24h_tracker', JSON.stringify(mealsData));
             } catch (e) {
-                console.warn('LocalStorage save failed:', e);
-            }
-            if (bc) bc.postMessage({ type: 'SYNC_MEALS', data: localMealsState });
-        }
-
-        function clearAllLocalState() {
-            localMealsState = { date: getTodayString(), breakfast: null, lunch: null, snacks: null, dinner: null };
-            saveLocalState();
-        }
-
-        // Listen for multi-tab updates
-        if (bc) {
-            bc.onmessage = (event) => {
-                if (event.data && event.data.type === 'SYNC_MEALS') {
-                    localMealsState = event.data.data;
-                    renderMeals(localMealsState);
-                }
-            };
-        }
-
-        function initWebSocket() {
-            // Only attempt WebSocket connection if hosted on a live HTTP/HTTPS server
-            if (!window.location.protocol.startsWith('http')) {
-                updateSyncBadge('local');
-                return;
-            }
-
-            try {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                socket = new WebSocket(`${protocol}//${window.location.host}`);
-
-                socket.onopen = () => {
-                    updateSyncBadge('connected');
-                };
-
-                socket.onmessage = (event) => {
-                    try {
-                        const message = JSON.parse(event.data);
-                        if (message.type === 'SYNC_MEALS') {
-                            localMealsState = message.data;
-                            saveLocalState();
-                            renderMeals(message.data);
-                        }
-                    } catch (e) {
-                        console.error('WebSocket message error:', e);
-                    }
-                };
-
-                socket.onerror = () => {
-                    updateSyncBadge('local');
-                };
-
-                socket.onclose = () => {
-                    updateSyncBadge('local');
-                    setTimeout(initWebSocket, 5000); // Reconnect attempt
-                };
-            } catch (err) {
-                console.warn('WebSocket connection not supported in this environment.', err);
-                updateSyncBadge('local');
+                console.warn('LocalStorage quota exceeded or unavailable:', e);
             }
         }
 
-        function renderMeals(data) {
+        function checkAndCleanExpiredMeals() {
+            const now = Date.now();
+            let stateChanged = false;
+
             MEALS.forEach(meal => {
-                if (data && data[meal]) {
-                    displayMealImage(meal, data[meal]);
-                } else {
-                    clearMealSlotUI(meal);
+                if (mealsData[meal]) {
+                    const elapsed = now - mealsData[meal].uploadedAt;
+                    if (elapsed >= TWENTY_FOUR_HOURS_MS) {
+                        // 24 Hours have passed -> remove image
+                        mealsData[meal] = null;
+                        stateChanged = true;
+                    }
                 }
             });
+
+            if (stateChanged) {
+                saveToLocalStorage();
+            }
+
+            renderUI();
         }
 
-        function displayMealImage(meal, dataUrl) {
-            const img = document.getElementById(`img-${meal}`);
-            if (img) img.src = dataUrl;
-            
-            const placeholder = document.getElementById(`placeholder-${meal}`);
-            if (placeholder) placeholder.classList.add('hidden');
-            
-            const container = document.getElementById(`preview-container-${meal}`);
-            if (container) container.classList.remove('hidden');
+        function renderUI() {
+            const now = Date.now();
 
-            const badge = document.getElementById(`badge-${meal}`);
-            if (badge) {
-                badge.innerText = 'Logged';
-                badge.className = 'text-xs font-medium px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-700';
-            }
-        }
+            MEALS.forEach(meal => {
+                const data = mealsData[meal];
+                const timerBadge = document.getElementById(`timer-${meal}`);
 
-        function clearMealSlotUI(meal) {
-            const container = document.getElementById(`preview-container-${meal}`);
-            if (container) container.classList.add('hidden');
-            
-            const placeholder = document.getElementById(`placeholder-${meal}`);
-            if (placeholder) placeholder.classList.remove('hidden');
-            
-            const input = document.getElementById(`input-${meal}`);
-            if (input) input.value = '';
+                if (data && data.image) {
+                    // Display uploaded image on card
+                    const imgEl = document.getElementById(`img-${meal}`);
+                    if (imgEl) imgEl.src = data.image;
 
-            const badge = document.getElementById(`badge-${meal}`);
-            if (badge) {
-                badge.innerText = 'Empty';
-                badge.className = 'text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500';
-            }
+                    document.getElementById(`placeholder-${meal}`).classList.add('hidden');
+                    document.getElementById(`preview-container-${meal}`).classList.remove('hidden');
+
+                    // Calculate remaining time
+                    const remainingMs = Math.max(0, TWENTY_FOUR_HOURS_MS - (now - data.uploadedAt));
+                    const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+                    const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+
+                    if (timerBadge) {
+                        timerBadge.className = "text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+                        timerBadge.innerHTML = `<i class="fa-regular fa-clock text-[10px] mr-1"></i> Resets in ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    }
+                } else {
+                    // Show empty placeholder state
+                    document.getElementById(`preview-container-${meal}`).classList.add('hidden');
+                    document.getElementById(`placeholder-${meal}`).classList.remove('hidden');
+
+                    if (timerBadge) {
+                        timerBadge.className = "text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500";
+                        timerBadge.innerText = 'Empty';
+                    }
+                }
+            });
         }
 
         function triggerFileInput(meal) {
@@ -344,12 +367,33 @@
 
         function handleFileSelect(event, meal) {
             const file = event.target.files[0];
-            if (!file) return;
+            if (file) processImageFile(file, meal);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('border-brand-500', 'bg-brand-50/50');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('border-brand-500', 'bg-brand-50/50');
+        }
+
+        function handleDrop(event, meal) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('border-brand-500', 'bg-brand-50/50');
+            const file = event.dataTransfer.files[0];
+            if (file) processImageFile(file, meal);
+        }
+
+        function processImageFile(file, meal) {
+            if (!file.type.startsWith('image/')) return;
 
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
+                    // Compress image using Canvas to save LocalStorage space
                     const canvas = document.createElement('canvas');
                     const maxDim = 800;
                     let w = img.width, h = img.height;
@@ -357,22 +401,19 @@
                     else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
 
                     canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
 
-                    // Update local state immediately
-                    localMealsState[meal] = compressed;
-                    displayMealImage(meal, compressed);
-                    saveLocalState();
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
 
-                    // Safely check socket before sending over network
-                    if (socket && socket.readyState === WebSocket.OPEN) {
-                        try {
-                            socket.send(JSON.stringify({ type: 'UPDATE_MEAL', meal, imageData: compressed }));
-                        } catch (err) {
-                            console.warn('Failed to send image update via WebSocket:', err);
-                        }
-                    }
+                    // Store image with timestamp
+                    mealsData[meal] = {
+                        image: compressedBase64,
+                        uploadedAt: Date.now()
+                    };
+
+                    saveToLocalStorage();
+                    renderUI();
                 };
                 img.src = e.target.result;
             };
@@ -380,74 +421,52 @@
         }
 
         function deleteMealImage(meal) {
-            localMealsState[meal] = null;
-            clearMealSlotUI(meal);
-            saveLocalState();
-
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                try {
-                    socket.send(JSON.stringify({ type: 'UPDATE_MEAL', meal, imageData: null }));
-                } catch (err) {
-                    console.warn('Failed to send delete update via WebSocket:', err);
-                }
-            }
+            mealsData[meal] = null;
+            saveToLocalStorage();
+            renderUI();
         }
 
         function confirmClearAll() {
-            clearAllLocalState();
-            renderMeals(localMealsState);
+            MEALS.forEach(meal => mealsData[meal] = null);
+            saveToLocalStorage();
+            renderUI();
+        }
 
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                try {
-                    socket.send(JSON.stringify({ type: 'CLEAR_ALL' }));
-                } catch (err) {
-                    console.warn('Failed to send clear all via WebSocket:', err);
+        function simulatePass24Hours() {
+            // Subtract 24 hours from all uploaded timestamps
+            MEALS.forEach(meal => {
+                if (mealsData[meal]) {
+                    mealsData[meal].uploadedAt -= TWENTY_FOUR_HOURS_MS;
                 }
+            });
+            checkAndCleanExpiredMeals();
+        }
+
+        function openModal(meal) {
+            if (mealsData[meal] && mealsData[meal].image) {
+                document.getElementById('modal-title').innerText = `${meal} Photo`;
+                document.getElementById('modal-img').src = mealsData[meal].image;
+                document.getElementById('image-modal').classList.remove('hidden');
             }
         }
 
-        function updateSyncBadge(status) {
-            const badge = document.getElementById('sync-status');
-            if (!badge) return;
-
-            if (status === 'connected') {
-                badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800";
-                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500"></span> Live Server Sync`;
-            } else if (status === 'local') {
-                badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800";
-                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-blue-500"></span> Active (Local Sync)`;
-            } else {
-                badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
-                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> Connecting...`;
-            }
+        function closeModal() {
+            document.getElementById('image-modal').classList.add('hidden');
         }
 
         function updateClock() {
-            const now = new Date();
-            const dateEl = document.getElementById('current-date-display');
-            if (dateEl) dateEl.innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            
-            // Auto check midnight reset
-            if (localMealsState.date !== getTodayString()) {
-                clearAllLocalState();
+            const timeEl = document.getElementById('current-time-display');
+            if (timeEl) {
+                timeEl.innerText = new Date().toLocaleTimeString('en-US', { hour12: true });
             }
-
-            const midnight = new Date();
-            midnight.setHours(24, 0, 0, 0);
-            const diff = midnight - now;
-            const h = Math.floor((diff / 3600000) % 24);
-            const m = Math.floor((diff / 60000) % 60);
-            const s = Math.floor((diff / 1000) % 60);
-            const countEl = document.getElementById('countdown-display');
-            if (countEl) countEl.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
 
-        // Initialize application on load
+        // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
-            loadLocalState();
+            loadFromLocalStorage();
+            setInterval(checkAndCleanExpiredMeals, 1000); // Check expiry every second
             setInterval(updateClock, 1000);
             updateClock();
-            initWebSocket();
         });
     </script>
 </body>

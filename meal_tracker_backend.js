@@ -47,6 +47,12 @@ setInterval(checkAndResetAtMidnight, 10000);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve your custom HTML file directly at the root URL '/'
+app.get('/', (req, res) => {
+    // Replace 'your-file-name.html' with the actual name of your HTML file:
+    res.sendFile(path.join(__dirname, 'your-file-name.html'));
+});
+
 // Serve current state via REST endpoint as fallback
 app.get('/api/meals', (req, res) => {
     checkAndResetAtMidnight();

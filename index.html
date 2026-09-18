@@ -342,14 +342,16 @@
             MEALS.forEach(meal => {
                 const data = mealsData[meal];
                 const timerBadge = document.getElementById(`timer-${meal}`);
+                const imageEl = document.getElementById(`img-${meal}`);
+                const placeholderEl = document.getElementById(`placeholder-${meal}`);
+                const previewEl = document.getElementById(`preview-container-${meal}`);
 
                 if (data && data.image) {
-                    // Display uploaded image on card
-                    const imgEl = document.getElementById(`img-${meal}`);
-                    if (imgEl) imgEl.src = data.image;
+                    // Replace only this meal card's image.
+                    if (imageEl) imageEl.src = data.image;
 
-                    document.getElementById(`placeholder-${meal}`).classList.add('hidden');
-                    document.getElementById(`preview-container-${meal}`).classList.remove('hidden');
+                    placeholderEl.classList.add('hidden');
+                    previewEl.classList.remove('hidden');
 
                     // Calculate remaining time
                     const remainingMs = Math.max(0, TWENTY_FOUR_HOURS_MS - (now - data.uploadedAt));
@@ -362,9 +364,9 @@
                         timerBadge.innerHTML = `<i class="fa-regular fa-clock text-[10px] mr-1"></i> Resets in ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                     }
                 } else {
-                    // Show empty placeholder state
-                    document.getElementById(`preview-container-${meal}`).classList.add('hidden');
-                    document.getElementById(`placeholder-${meal}`).classList.remove('hidden');
+                    if (imageEl) imageEl.removeAttribute('src');
+                    previewEl.classList.add('hidden');
+                    placeholderEl.classList.remove('hidden');
 
                     if (timerBadge) {
                         timerBadge.className = "text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500";

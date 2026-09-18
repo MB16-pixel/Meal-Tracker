@@ -265,13 +265,7 @@
         const MEALS = ['breakfast', 'lunch', 'snacks', 'dinner'];
         const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-        /*
-            Local State Structure stored in browser's localStorage:
-            {
-                breakfast: { image: "data:image/jpeg;base64,...", uploadedAt: 1710000000000 },
-                lunch: null, ...
-            }
-        */
+        // Images and their upload times exist only while this page is open.
         let mealsData = {
             breakfast: null,
             lunch: null,
@@ -279,59 +273,17 @@
             dinner: null
         };
 
-        function loadFromLocalStorage() {
-            try {
-                const saved = localStorage.getItem('daily_meals_24h_tracker');
-                if (saved) {
-                    const savedData = JSON.parse(saved);
-                    mealsData = MEALS.reduce((state, meal) => {
-                        const mealData = savedData && savedData[meal];
-                        const hasValidImage = mealData &&
-                            typeof mealData.image === 'string' &&
-                            mealData.image.startsWith('data:image/');
-                        const hasValidTimestamp = mealData &&
-                            Number.isFinite(mealData.uploadedAt);
-
-                        state[meal] = hasValidImage && hasValidTimestamp
-                            ? {
-                                image: mealData.image,
-                                uploadedAt: mealData.uploadedAt
-                            }
-                            : null;
-                        return state;
-                    }, {});
-                }
-            } catch (e) {
-                console.warn('LocalStorage unavailable:', e);
-            }
-            checkAndCleanExpiredMeals();
-        }
-
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem('daily_meals_24h_tracker', JSON.stringify(mealsData));
-            } catch (e) {
-                console.warn('LocalStorage quota exceeded or unavailable:', e);
-            }
-        }
-
         function checkAndCleanExpiredMeals() {
             const now = Date.now();
-            let stateChanged = false;
 
             MEALS.forEach(meal => {
                 if (mealsData[meal]) {
                     const expiresAt = mealsData[meal].uploadedAt + TWENTY_FOUR_HOURS_MS;
                     if (now >= expiresAt) {
                         mealsData[meal] = null;
-                        stateChanged = true;
                     }
                 }
             });
-
-            if (stateChanged) {
-                saveToLocalStorage();
-            }
 
             renderUI();
         }
@@ -428,7 +380,6 @@
                         uploadedAt: Date.now()
                     };
 
-                    saveToLocalStorage();
                     renderUI();
                 };
                 img.src = e.target.result;
@@ -438,13 +389,11 @@
 
         function deleteMealImage(meal) {
             mealsData[meal] = null;
-            saveToLocalStorage();
             renderUI();
         }
 
         function confirmClearAll() {
             MEALS.forEach(meal => mealsData[meal] = null);
-            saveToLocalStorage();
             renderUI();
         }
 
@@ -479,7 +428,7 @@
 
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
-            loadFromLocalStorage();
+            renderUI();
             setInterval(checkAndCleanExpiredMeals, 1000); // Check expiry every second
             setInterval(updateClock, 1000);
             updateClock();
